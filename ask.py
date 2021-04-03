@@ -28,6 +28,7 @@ class Generation():
             question.append(verb)
             # now need a way to determine whether to use noun phrase from
             # before or after the verb
+            # lazy implementation is just adding both
 
 
         
