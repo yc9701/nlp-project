@@ -70,7 +70,10 @@ class Generation():
                     result2+="?"
                     return result2[1:]
             return ""
-        
+        for sentence in self.data:
+            question = sentence_yes_questions(sentence)
+            if not(question == ""):
+                self.questions.add(question)
         
 
     def generateNoQ(self):
