@@ -16,7 +16,21 @@ class Generation():
 
     # input is list of 3 tuples returned by self.assignWHWord()
     def generateWHWord(self, assignments)
-        (verb, index, whword) = assignments
+        # (verb, index, whword) = assignments
+        for (i in range(len(assignments))):
+            # read in the ith element of assignments
+            (verb, index, whword) = assignments[i]
+            # get the ith sentence corresponding to assignment, tagged
+            sentence = self.tagged[i]
+            # initialize blank list representing question
+            question = []
+            question.append(whword)
+            question.append(verb)
+            # now need a way to determine whether to use noun phrase from
+            # before or after the verb
+
+
+        
     
     def generateYesQ(self)
 
