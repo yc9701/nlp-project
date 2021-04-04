@@ -30,9 +30,9 @@ class Generation():
                 if subtree.label == 'NP':
                     
 
-    # input is list of 3 tuples returned by self.assignWHWord()
+    # input is list of tuples returned by self.assignWHWord()
     def generateWHWord(self, assignments):
-        # (verb, index, whword) = assignments
+        # (verb, whword) = assignments
         for (i in range(len(assignments))):
             # read in the ith element of assignments
             (verb, whword) = assignments[i]
