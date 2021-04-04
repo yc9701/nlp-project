@@ -19,6 +19,18 @@ class Generation():
         # set of all the questions we generate (questions are in the form of strings)
         self.questions = set()
 
+    # Prints the preceeding part of a parse_tree
+    def printPhraseBefore(self, parse_tree, index):
+        phrase = ""
+        for i in range(index-1):
+            phrase = phrase + parse_tree[0][i] + " "
+        return phrase
+    # Printes the successding part of a parse_tree
+    def printPhraseAfter(self, parse_tree, index):
+        phrase = ""
+        for i in range(len(parse_tree[0])-index-1):
+            phrase = " " + phrase + parse_tree[0][i+index+1]
+        return phrase
     def assignWHWord(self):
         verb_tags = {'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ'}
         verbs = []
