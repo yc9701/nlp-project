@@ -44,21 +44,29 @@ class Generation():
                                     # should have just 1 entity b/c we have just
                                     # 1 noun phrase
                                     # case whether VP comes before/after NP
-                                    if i < j:
+                                    if 0 < i and i < j:
+                                        # Get the phrase before this VP
+                                        prev_NP = parse_tree[0][i-1]
                                         for ent in doc.ents:
                                             if ent.label_ == 'PERSON':
                                                 # WH-word = who
-                                                question = "Who " + verb_subtree.token + " " + noun_subtree.token + "?"
+                                                question = subtree.token + " who?"
                                                 self.questions.add(question)
-                                            elif ent.label_ in ['DATE', 'TIME']:
+                                            elif ent.label_ == "DATE":
                                                 # WH-word = when
-                                                # Do nothing
+                                                question = subtree.token + " what date?"
+                                                self.questions.add(question)
+                                            elif ent.label == "TIME":
+                                                # WH-word = when
+                                                question = subtree.token + " what time?"
+                                                self.questions.add(question)
                                             elif ent.label_ == 'LOCATION':
                                                 # WH-word = where
-                                                # Do nothing
+                                                question = subtree.token + " where?"
+                                                self.questions.add(question)
                                             else:
                                                 # WH-word = what
-                                                question = "What " + verb_subtree.token + " " + noun_subtree.token + "?"
+                                                question = subtree.token + " what?"
                                                 self.questions.add(question)
                                     else:
                                         for ent in doc.ents:
