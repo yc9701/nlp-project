@@ -43,19 +43,38 @@ class Generation():
                                     doc = nlp(noun_subtree.token)
                                     # should have just 1 entity b/c we have just
                                     # 1 noun phrase
-                                    for ent in doc.ents:
-                                        if ent.label_ == 'PERSON':
-                                            # WH-word = who
-                                            self.questions.add()
-                                        elif ent.label_ in ['DATE', 'TIME']:
-                                            # WH-word = when
-                                            self.questions.add()
-                                        elif ent.label_ == 'LOCATION':
-                                            # WH-word = where
-                                            self.questions.add()
-                                        else:
-                                            # WH-word = what
-                                            self.questions.add()
+                                    # case whether VP comes before/after NP
+                                    if i < j:
+                                        for ent in doc.ents:
+                                            if ent.label_ == 'PERSON':
+                                                # WH-word = who
+                                                question = "Who " + verb_subtree.token + " " + noun_subtree.token + "?"
+                                                self.questions.add(question)
+                                            elif ent.label_ in ['DATE', 'TIME']:
+                                                # WH-word = when
+                                                # Do nothing
+                                            elif ent.label_ == 'LOCATION':
+                                                # WH-word = where
+                                                # Do nothing
+                                            else:
+                                                # WH-word = what
+                                                question = "What " + verb_subtree.token + " " + noun_subtree.token + "?"
+                                                self.questions.add(question)
+                                    else:
+                                        for ent in doc.ents:
+                                            if ent.label_ == 'PERSON':
+                                                # WH-word = who
+                                                question = "Who did" + noun_subtree.token + " " + verb_subtree.token + "?"
+                                                self.questions.add(question)
+                                            elif ent.label_ in ['DATE', 'TIME']:
+                                                # WH-word = when
+                                                self.questions.add()
+                                            elif ent.label_ == 'LOCATION':
+                                                # WH-word = where
+                                                self.questions.add()
+                                            else:
+                                                # WH-word = what
+                                                self.questions.add()
                                         # NOTE: for "why" and "how", we prob
                                         # need a way besides using NER. for
                                         # example detecting words like "because"
