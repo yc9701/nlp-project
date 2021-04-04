@@ -2,6 +2,10 @@ import nltk
 import string
 from bllipparser import RerankingParser
 rrp = RerankingParser.fetch_and_load('WSJ-PTB3', verbose=True)
+import spacy
+from spacy import displacy
+import en_core_web_sm
+nlp = en_core_web_sm.load()
 
 class Generation():
     def __init__(self, preprocessed_data, tagged_data, ner_data, n):
@@ -14,20 +18,47 @@ class Generation():
         self.ner = ner_data
         # set of all the questions we generate (questions are in the form of strings)
         self.questions = set()
-    
-    # return list of (verb, WH word) tuples for each sentence
+
     def assignWHWord(self):
         verb_tags = {'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ'}
         verbs = []
         for sentence in self.tagged:
             parse_tree = rrp.parse_tagged(sentence)
-            for subtree in parse_tree[0]:
+            for i in range(len(parse_tree[0])):
+                subtree = parse_tree[0][i]
                 if subtree.label == 'VP':
-                    for subSubtree in subtree:
-                        if subSubtree.label in verb_tags:
-                            verbs.append(subSubtree.token)
-                            break
-                if subtree.label == 'NP':
+                    for verb_subtree in subtree:
+                        # verb found
+                        if verb_subtree.label in verb_tags:
+                            # now iterate over all noun phrases
+                            for j in range(len(parse_tree[0])):
+                                noun_subtree = parse_tree[0][j]
+                                if noun_subtree.label == 'NP':
+                                    # TODO: JUST TO HELP U JON:
+                                    # i : index of VP
+                                    # j : index of NP
+                                    # verb_subtree.token : the actual verb
+                                    # verb_subtree.label : the specific verb tag
+                                    # noun_subtree.token : the noun phrase
+                                    doc = nlp(noun_subtree.token)
+                                    # should have just 1 entity b/c we have just
+                                    # 1 noun phrase
+                                    for ent in doc.ents:
+                                        if ent.label_ == 'PERSON':
+                                            # WH-word = who
+                                            self.questions.add()
+                                        elif ent.label_ in ['DATE', 'TIME']:
+                                            # WH-word = when
+                                            self.questions.add()
+                                        elif ent.label_ == 'LOCATION':
+                                            # WH-word = where
+                                            self.questions.add()
+                                        else:
+                                            # WH-word = what
+                                            self.questions.add()
+                                        # NOTE: for "why" and "how", we prob
+                                        # need a way besides using NER. for
+                                        # example detecting words like "because"
                     
 
     # input is list of 3 tuples returned by self.assignWHWord()
