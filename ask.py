@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 import nltk
 import string
 from bllipparser import RerankingParser
@@ -161,7 +162,6 @@ class Generator():
     def generateNoQ(self):
 
     def getTopNQs(self, n):
-        print("questions\n")
 
 if __name__ == "__main__":
     # Files
@@ -173,4 +173,10 @@ if __name__ == "__main__":
     ner_data = ner(data)
 
     qGenerator = Generator(preprocessed_data, tagged_data, ner_data)
-    qGenerator.getTopNQs(nquestions)
+    qGenerator.generateWHQ()
+    qGenerator.generateYesQ()
+    qGenerator.generateNoQ()
+
+    questions = qGenerator.getTopNQs(nquestions)
+    for question in questions:
+        print(question + '\n')
