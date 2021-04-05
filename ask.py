@@ -22,23 +22,60 @@ class Generation():
     # Prints the preceeding part of a parse_tree
     def printPhraseBefore(self, parse_tree, index):
         phrase = ""
+        if index == 0:
+            return phrase
         for i in range(index-1):
             phrase = phrase + parse_tree[0][i] + " "
         return phrase
-    # Printes the successding part of a parse_tree
+    # Prints the successive part of a parse_tree
+    # Someone please check my indexing - Jon
     def printPhraseAfter(self, parse_tree, index):
         phrase = ""
+        if index == (len(parse_tree)-1):
+            return phrase 
         for i in range(len(parse_tree[0])-index-1):
             phrase = " " + phrase + parse_tree[0][i+index+1]
         return phrase
+    # Get WH questions
     def assignWHWord(self):
         verb_tags = {'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ'}
         verbs = []
+        # Loop through sentences
         for sentence in self.tagged:
+            # Construct parse_tree
             parse_tree = rrp.parse_tagged(sentence)
+            # Loop through the top layer of sentence
             for i in range(len(parse_tree[0])):
+                # Get a subtree, check its label
                 subtree = parse_tree[0][i]
-                if subtree.label == 'VP':
+                # (Replacable) noun phrase found
+                if subtree.label == 'NP':
+                    # Get the rest of the sentence without this NP
+                    prev_phrase = self.printPhraseBefore(parse_tree, i)
+                    next_phrase = self.printPhraseAfter(parse_tree, i)
+                    # Find the entity type of the NP
+                    doc = nlp(subtree.token)
+                    # Hopefully these top level NP are fairly simple
+                    # Guess every relevant WH word for substitution
+                     for ent in doc.ents:
+                        if ent.label_ == 'PERSON':
+                            # WH-word = who
+                            wh_word = "who"
+                        elif ent.label_ == "DATE":
+                            # WH-word = when
+                            wh_word = "when"
+                        elif ent.label == "TIME":
+                            # WH-word = when
+                            wh_word = "when"
+                        elif ent.label_ == 'LOCATION':
+                            # WH-word = where
+                            wh_word = "where"
+                        else:
+                            # WH-word = what
+                            wh_word = "what"
+
+
+
                     for verb_subtree in subtree:
                         # verb found
                         if verb_subtree.label in verb_tags:
