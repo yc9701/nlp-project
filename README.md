@@ -6,3 +6,4 @@ en_core_web_sm
 wheel
 Microsoft Visual C++
 neuralcoref
+bllipparser
