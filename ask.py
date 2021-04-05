@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import nltk
 import string
 from bllipparser import RerankingParser
@@ -7,9 +8,8 @@ from spacy import displacy
 import en_core_web_sm
 nlp = en_core_web_sm.load()
 
-class Generation():
-    def __init__(self, preprocessed_data, tagged_data, ner_data, n):
-        self.n = n
+class Generator():
+    def __init__(self, preprocessed_data, tagged_data, ner_data):
         # list of sentences, each sentence is a list of words as strings
         self.data = preprocessed_data
         # list of list of (word, POS tag) tuples
@@ -18,6 +18,12 @@ class Generation():
         self.ner = ner_data
         # set of all the questions we generate (questions are in the form of strings)
         self.questions = set()
+
+    # capitalize first letter in the sentence
+    def capitalizeSent(self, sentence):
+        firstLetter = sentence[0].upper()
+        restOfSent = sentence[1:len(sentence)]
+        return firstLetter + restOfSent
 
     # Returns the preceeding part of a parse_tree
     # NOTE: Includes a trailing whitespace if non-empty
@@ -116,39 +122,55 @@ class Generation():
                     prev_phrase = self.printPhraseBefore(parse_tree[0], i)
                     next_phrase = self.printPhraseAfter(parse_tree[0], i)
                     question = prev_phrase + sub + next_phrase + "?"
+                    # capitalize first letter in sentence
+                    question = self.capitalizeSent(question)
                     self.questions.add(question)
 
-                    # NOTE: for "why" and "how", we prob
-                    # need a way besides using NER. for
-                    # example detecting words like "because"
-                    
+        # NOTE: for "why" and "how", we probably
+        # need a way besides using NER. for
+        # example detecting words like "because" or "due to"
+    
+
     auxi_verbs = ["am", "is", "are", "was", "were", "have", "has", 
     "had", "do", "does", "did", "will", "would", "shall", "should", 
     "may", "might", "must", "can", "could"]
+    def sentence_yes_questions(sentence):
+        result = []
+        for i in range(len(sentence)):
+            if (sentence[i] in auxi_verbs):
+                for j in range(i):
+                    result.append(sentence[j])
+                if (i < len(sentence)-1):
+                    for k in range(i+1, len(sentence)-1):
+                        result.append(sentence[k])
+        
+                result.insert(0, sentence[i][0].swapcase() + sentence[i][1:])
+                result2 = ""
+                for word in result:
+                    result2+=" "+word
+                result2+="?"
+                return result2[1:]
+        return ""
+
     def generateYesQ(self):
-        def sentence_yes_questions(sentence):
-            result = []
-            for i in range(len(sentence)):
-                if (sentence[i] in auxi_verbs):
-                    for j in range(i):
-                        result.append(sentence[j])
-                    if (i < len(sentence)-1):
-                        for k in range(i+1, len(sentence)-1):
-                            result.append(sentence[k])
-            
-                    result.insert(0, sentence[i][0].swapcase() + sentence[i][1:])
-                    result2 = ""
-                    for word in result:
-                        result2+=" "+word
-                    result2+="?"
-                    return result2[1:]
-            return ""
         for sentence in self.data:
-            question = sentence_yes_questions(sentence)
+            question = self.sentence_yes_questions(sentence)
             if not(question == ""):
                 self.questions.add(question)
-        
 
     def generateNoQ(self):
 
-    def getTopNQs(self):
+    def getTopNQs(self, n):
+        print("questions\n")
+
+if __name__ == "__main__":
+    # Files
+    data_file = sys.argv[1]
+    nquestions = sys.argv[2]
+
+    data = open_file(data_file)
+    (preprocessed_data, tagged_data) = pos_tokenize(data)
+    ner_data = ner(data)
+
+    qGenerator = Generator(preprocessed_data, tagged_data, ner_data)
+    qGenerator.getTopNQs(nquestions)
