@@ -36,6 +36,11 @@ class Generation():
         for i in range(len(parse_tree[0])-index-1):
             phrase = " " + phrase + parse_tree[0][i+index+1]
         return phrase
+
+    def printSubstitutedVP(self, parse_tree):
+        for i in range(len(parse_tree)):
+            self.questions.add(printSubstituted())
+
     # Returns a phrase with NP in index substituted for appropraite WH word
     # If no NP found within indexed subtree, returns empty string
     # Hope to eventually make this recursive:
@@ -53,27 +58,27 @@ class Generation():
             for ent in doc.ents:
                 if ent.label_ == 'PERSON':
                     # WH-word = who
-                    wh_word = "who"
+                    wh_word = {"who"}
                 elif ent.label_ == "DATE":
                     # WH-word = when
-                    wh_word = "when"
+                    wh_word = {"when"}
                 elif ent.label == "TIME":
                     # WH-word = when
-                    wh_word = "when"
+                    wh_word = {"when"}
                 elif ent.label_ == 'LOCATION':
                     # WH-word = where
-                    wh_word = "where"
+                    wh_word = {"where"}
                 else:
                     # WH-word = what
-                    wh_word = "what"
+                    wh_word = {"what"}
             return wh_word
         # NOTE: This else case should eventually be recursive
         else:
+            self.printSubstitutedVP(subtree)
             return ""
     # Get WH questions
-    def assignWHWord(self):
+    def generateWHQ(self):
         verb_tags = {'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ'}
-        verbs = []
         # Loop through sentences
         for sentence in self.tagged:
             # Construct parse_tree
