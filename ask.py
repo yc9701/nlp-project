@@ -20,35 +20,52 @@ class Generation():
         self.questions = set()
 
     # Returns the preceeding part of a parse_tree
+    # NOTE: Includes a trailing whitespace if non-empty
     def printPhraseBefore(self, parse_tree, index):
         phrase = ""
         if index == 0:
             return phrase
-        for i in range(index-1):
-            phrase = phrase + parse_tree[0][i] + " "
+        for i in range(index):
+            phrase = phrase + parse_tree[i].token + " "
         return phrase
+
     # Returns the successive part of a parse_tree
-    # Someone please check my indexing - Jon
+    # NOTE: Includes a leading whitespace if non-empty
     def printPhraseAfter(self, parse_tree, index):
         phrase = ""
         if index == (len(parse_tree)-1):
             return phrase 
-        for i in range(len(parse_tree[0])-index-1):
-            phrase = " " + phrase + parse_tree[0][i+index+1]
+        for i in range(index + 1, len(parse_tree)):
+            phrase = " " + phrase + parse_tree[i].token
         return phrase
-
-    def printSubstitutedVP(self, parse_tree):
+    
+    # Recursive helper for getSubstitutions, loops through a non-NP phrase
+    def getSubRecursive(self, parse_tree):
+        # Initialize an empty set
+        result = set()
+        # Loop through each labeled part of the phrase
         for i in range(len(parse_tree)):
-            self.questions.add(printSubstituted())
+            # Recursive call to search for possible substitutions
+            poss_subs = self.getSubstitutions(parse_tree, i)
+            # For each substitution, make that change in our phrase
+            for sub in poss_subs:
+                prev_phrase = self.printPhraseBefore(parse_tree, i)
+                next_phrase = self.printPhraseAfter(parse_tree, i)
+                comb_phrase = prev_phrase + sub + next_phrase
+                # Add the changed phrase to result set
+                result.add(comb_phrase)
+        # Return (possibly empty) set of all(?) possible changes
+        return result
 
-    # Returns a phrase with NP in index substituted for appropraite WH word
+    # Returns a set of phrases, where each phrase makes a substitution
+    # of a NP with an appropriate WH word
     # If no NP found within indexed subtree, returns empty string
     # Hope to eventually make this recursive:
     # NOTE: current implementation only checks top level tree,
     # TODO: implement recursion to check all levels of the tree for replacable NP
-    def printSubstituted(self, parse_tree, index):
+    def getSubstitutions(self, parse_tree, index):
         # Get a subtree, check its label
-        subtree = parse_tree[0][index]
+        subtree = parse_tree[index]
         # (Replacable) noun phrase found
         if subtree.label == 'NP':
             # Find the entity type of the NP
@@ -71,14 +88,20 @@ class Generation():
                 else:
                     # WH-word = what
                     wh_word = {"what"}
+                # NOTE: Read note in generateWHQ
             return wh_word
-        # NOTE: This else case should eventually be recursive
+        # Recurse and try to look for inner substitutions
         else:
-            self.printSubstitutedVP(subtree)
-            return ""
+            # If length is 1, there can be no subsitutions
+            if len(subtree) <= 1:
+                return set()
+            # Otherwise, phrase can be further broken down
+            else:
+                return self.getSubRecursive(subtree)
+
+
     # Get WH questions
     def generateWHQ(self):
-        verb_tags = {'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ'}
         # Loop through sentences
         for sentence in self.tagged:
             # Construct parse_tree
@@ -86,23 +109,18 @@ class Generation():
             # Loop through the top layer of sentence
             for i in range(len(parse_tree[0])):
                 # Get possible substitution for a NP in this index
-                wh_phrase = self.printSubstituted(parse_tree, i)
+                sub_phrases = self.getSubstitutions(parse_tree[0], i)
                 # Check for successful replacement
-                if (wh_phrase != ""):
+                for sub in sub_phrases:
                     # Get the rest of the sentence and construct question
-                    prev_phrase = self.printPhraseBefore(parse_tree, i)
-                    next_phrase = self.printPhraseAfter(parse_tree, i)
-                    question = prev_phrase + wh_phrase + next_phrase + " ?"
+                    prev_phrase = self.printPhraseBefore(parse_tree[0], i)
+                    next_phrase = self.printPhraseAfter(parse_tree[0], i)
+                    question = prev_phrase + sub + next_phrase + "?"
                     self.questions.add(question)
 
-                    # Leftover from old implementation
-                    # for verb_subtree in subtree:
-                        # verb found
-                        # if verb_subtree.label in verb_tags:
-                            # now iterate over all noun phrases
-                                        # NOTE: for "why" and "how", we prob
-                                        # need a way besides using NER. for
-                                        # example detecting words like "because"
+                    # NOTE: for "why" and "how", we prob
+                    # need a way besides using NER. for
+                    # example detecting words like "because"
                     
     auxi_verbs = ["am", "is", "are", "was", "were", "have", "has", 
     "had", "do", "does", "did", "will", "would", "shall", "should", 
