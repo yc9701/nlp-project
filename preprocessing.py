@@ -37,30 +37,30 @@ def ner(data):
     return [(X.text, X.label_) for X in result.ents]
 
 # you'll need this in command line: $ python -m spacy download en_core_web_lg
-coreferences = spacy.load('en_coref_lg')
-neuralcoref.add_to_pipe(coreferences)
-def coref(preprocessed):
-    result = preprocessed
-    for i in range(preprocessed):
-        sentence = preprocessed[i]
-        for j in range(sentence):
-            token = sentence[j]
-            if token.pos_ == 'PRON' and token._.in_coref:
-                for cluster in token._.coref_clusters:
-                    result[i][j] = cluster.main.text
-    return result
+# coreferences = spacy.load('en_coref_lg')
+# neuralcoref.add_to_pipe(coreferences)
+# def coref(preprocessed):
+#     result = preprocessed
+#     for i in range(preprocessed):
+#         sentence = preprocessed[i]
+#         for j in range(sentence):
+#             token = sentence[j]
+#             if token.pos_ == 'PRON' and token._.in_coref:
+#                 for cluster in token._.coref_clusters:
+#                     result[i][j] = cluster.main.text
+#     return result
 
-parser = argparse.ArgumentParser()
-parser.add_argument("articles", help="Articles to parse from") # will make a list later on
-parser.add_argument("--questions", help="Questions to parse, if answering")
-args = parser.parse_args()
+# parser = argparse.ArgumentParser()
+# parser.add_argument("articles", help="Articles to parse from") # will make a list later on
+# parser.add_argument("--questions", help="Questions to parse, if answering")
+# args = parser.parse_args()
 
-data = open_file(args.articles)
-(data_preprocessed, data_tagged) = pos_tokenize(data)
-data_ner = ner(data)
-pprint(data_ner)
-print(data_tagged[0])
-print(data_preprocessed)
-test = coreferences("Obama was the president. He is great.")
-(test_preprocessed, test_tagged) = pos_tokenize(test)
-print(coref(test_preprocessed))
+# data = open_file(args.articles)
+# (data_preprocessed, data_tagged) = pos_tokenize(data)
+# data_ner = ner(data)
+# pprint(data_ner)
+# print(data_tagged[0])
+# print(data_preprocessed)
+# test = coreferences("Obama was the president. He is great.")
+# (test_preprocessed, test_tagged) = pos_tokenize(test)
+# print(coref(test_preprocessed))
