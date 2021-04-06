@@ -7,3 +7,4 @@ wheel
 Microsoft Visual C++
 neuralcoref
 bllipparser
+wordnet
