@@ -34,6 +34,7 @@ class Answerer():
         # (questions are in the form of strings)
         self.answers = []
 
+    # input i: the index of the question we are identifying
     # returns True if question at self.questions[i] is a WH-question
     # returns False otherwise
     wh_tags = ['WDT', 'WP', 'WRB']
@@ -43,24 +44,39 @@ class Answerer():
                 return True
         return False
     
-    def answerWHQuestion(self, i):
+    # Finds sentences that are likely to contain the answer
+    # input i: the index of question to answer
+    # output: a set/list (TBD) of sentences that could contain the answer 
+    def likelySentences(self, i):
         # make a set of important words in question
         
         # go through each sentence in data and find sentences that 
         # could contain the answer to the question
-        possibleAnswers = set()
         for sentence in self.data:
             # check if the sentence contains the important words
-            # if this sentence possibly contains the answer,
+
+    # answers the ith question
+    # input i: the index of question to answer
+    # REQUIRES: ith question is WH question
+    # output: string that is the most likely answer
+    def answerWHQuestion(self, i):
+        sentences = likelySentences(i)
+        possibleAnswers = set()
+        for sentence in sentences:
             # find answer in sentence by going through each NP in the sentence
             # and seeing if the NP is in the question. If it is, we ignore.
             # If it isn't, then we check the NER of the NP. If the named entity
             # matches our WH-word, we add this NP as the answer to possible answers
-
+  
+    # answers the ith question
+    # input i: the index of question to answer
+    # REQUIRES: ith question is Yes/no question
+    # output: string that is the most likely answer
     def answerYesNoQuestion(self, question):
 
     # answers questions in self.questions and puts answers in same order
     # in self.answers
+    # output: list of strings
     def answerQuestions(self):
         for i in range(len(self.questions)):
             if isWHQuestion(i):
