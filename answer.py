@@ -48,13 +48,34 @@ class Answerer():
     # input i: the index of question to answer
     # output: a set/list (TBD) of sentences that could contain the answer 
     def likelySentences(self, i):
+        # tunable parameter
+        MARGIN = 0.15
         # make a set of important words in question
-        
+        important_words = set()
+        # ratio of the important words to length of question
+        important_ratio = 0
+        for (word, tag) in self.tagged_questions[i]:
+            if tag in ['NN','VB','ADJ']:
+                important_words.add((word, tag))
+        important_ratio = len(self.tagged_questions[i]) / len(important_word)
         # go through each sentence in data and find sentences that 
         # could contain the answer to the question
-        for sentence in self.data:
+        candidates = set()
+        for sentence in self.tagged_data:
+            count = 0
             # check if the sentence contains the important words
+            for (word, tag) in sentence:
+                if (word, tag) in important_words:
+                    count += 1
+            # ratio of important words to length of sentence
+            ratio = 0
+            if count != 0: 
+                ratio = len(sentence) / count
+            if ((1-MARGIN)*important_ratio <= ratio <= (1+MARGIN)*important_ratio):
+                candidates.add(sentence)
+        return candidates
 
+            
     # answers the ith question
     # input i: the index of question to answer
     # REQUIRES: ith question is WH question
