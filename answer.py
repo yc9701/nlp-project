@@ -50,29 +50,37 @@ class Answerer():
             if tag in self.wh_tags:
                 return True
         return False
-            
+    # finds the sentence in the document that is most similar to the ith question
+    # input i: the index of question to search for
+    # output: string that is most similar
+    def mostSimilar(self, i):
+        candidate_index = 0
+        for j in range(len(self.vectors)):
+            if self.vectors[j].similarity(self.question_vectors[i]) > self.vectors[candidate_index].similarity(self.question_vectors[i]):
+                candidate_index = j
+        return self.data[candidate_index]
     # answers the ith question
     # given a question, parses the document looking for the sentence with the highest similarity and returns it
     # input i: the index of question to answer
     # REQUIRES: ith question is WH question
     # output: string that is the most likely answer
     def answerWHQuestion(self, i):
+        return self.mostSimilar(i)
+
+        # TODO: delete this old comment
         # store a running tab of the index of the current most similar sentence
-        candidate_index = 0
-        for j in range(len(self.vectors)):
-            if self.vectors[j].similarity(self.question_vectors[i]) > self.vectors[candidate_index].similarity(self.questions_vectors[i]):
-                candidate_index = j
-        return self.data[candidate_index]
-            # find answer in sentence by going through each NP in the sentence
-            # and seeing if the NP is in the question. If it is, we ignore.
-            # If it isn't, then we check the NER of the NP. If the named entity
-            # matches our WH-word, we add this NP as the answer to possible answers
+        # find answer in sentence by going through each NP in the sentence
+        # and seeing if the NP is in the question. If it is, we ignore.
+        # If it isn't, then we check the NER of the NP. If the named entity
+        # matches our WH-word, we add this NP as the answer to possible answers
   
     # answers the ith question
     # input i: the index of question to answer
     # REQUIRES: ith question is Yes/no question
     # output: string that is the most likely answer
     def answerYesNoQuestion(self, i):
+        # get a similar sentence
+        sentence = self.mostSimilar(i)
         return
 
     # answers questions in self.questions and puts answers in same order
