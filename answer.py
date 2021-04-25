@@ -17,22 +17,28 @@ auxi_verbs = ["am", "is", "are", "was", "were", "have", "has",
     "may", "might", "must", "can", "could"]
 
 class Answerer():
-    def __init__(self, preprocessed_data, tagged_data, ner_data, preprocessed_questions, tagged_questions, ner_questions):
+    def __init__(self, preprocessed_data, tagged_data, vectors_data, ner_data, 
+    preprocessed_questions, tagged_questions, vectors_questions, ner_questions):
         # list of sentences, each sentence is a list of words as strings
         self.data = preprocessed_data
         # list of list of (word, POS tag) tuples
         self.tagged = tagged_data
+        # list of vectors of sentence meanings
+        self.vectors = vectors_data
         # ner data in spacy format
         self.ner = ner_data
         # list of questions, each question is a list of words as strings
         self.questions = preprocessed_questions
         # list of list of (word, POS tag) tuples
         self.tagged_questions = tagged_questions
+        # list of vectors of question meanings
+        self.question_vectors = vectors_questions
         # ner questions in spacy format
         self.ner_questions = ner_questions
         # list of all the answers in order of questions asked
         # (questions are in the form of strings)
         self.answers = []
+
 
     # input i: the index of the question we are identifying
     # returns True if question at self.questions[i] is a WH-question
@@ -43,47 +49,19 @@ class Answerer():
             if tag in wh_tags:
                 return True
         return False
-    
-    # Finds sentences that are likely to contain the answer
-    # input i: the index of question to answer
-    # output: a set/list (TBD) of sentences that could contain the answer 
-    def likelySentences(self, i):
-        # tunable parameter
-        MARGIN = 0.15
-        # make a set of important words in question
-        important_words = set()
-        # ratio of the important words to length of question
-        important_ratio = 0
-        for (word, tag) in self.tagged_questions[i]:
-            if tag in ['NN','VB','ADJ']:
-                important_words.add((word, tag))
-        important_ratio = len(self.tagged_questions[i]) / len(important_word)
-        # go through each sentence in data and find sentences that 
-        # could contain the answer to the question
-        candidates = set()
-        for sentence in self.tagged_data:
-            count = 0
-            # check if the sentence contains the important words
-            for (word, tag) in sentence:
-                if (word, tag) in important_words:
-                    count += 1
-            # ratio of important words to length of sentence
-            ratio = 0
-            if count != 0: 
-                ratio = len(sentence) / count
-            if ((1-MARGIN)*important_ratio <= ratio <= (1+MARGIN)*important_ratio):
-                candidates.add(sentence)
-        return candidates
-
             
     # answers the ith question
+    # given a question, parses the document looking for the sentence with the highest similarity and returns it
     # input i: the index of question to answer
     # REQUIRES: ith question is WH question
     # output: string that is the most likely answer
     def answerWHQuestion(self, i):
-        sentences = likelySentences(i)
-        possibleAnswers = set()
-        for sentence in sentences:
+        # store a running tab of the index of the current most similar sentence
+        candidate_index = 0
+        for j in range(len(self.vectors)):
+            if self.vectors[j].similarity(self.question_vectors[i]) > self.vectors[candidate_index].similarity(self.questions_vectors[i]):
+                candidate_index = j
+        return self.data[candidate_index]
             # find answer in sentence by going through each NP in the sentence
             # and seeing if the NP is in the question. If it is, we ignore.
             # If it isn't, then we check the NER of the NP. If the named entity
@@ -118,14 +96,16 @@ if __name__ == "__main__":
     # preprocess data
     data = preprocess.open_file(data_file)
     (preprocessed_data, tagged_data) = preprocess.pos_tokenize(data)
+    vectors_data = preprocess.vectors(data)
     ner_data = preprocess.ner(data)
 
     # preprocess questions
     questions = preprocess.open_file(questions_file)
     (preprocessed_questions, tagged_questions) = preprocess.pos_tokenize(questions)
+    vectors_questions = preprocess.vectors(questions)
     ner_questions = preprocess.ner(questions)
 
-    qAnswerer = Answerer(preprocessed_data, tagged_data, ner_data, preprocessed_questions, tagged_questions, ner_questions)
+    qAnswerer = Answerer(preprocessed_data, tagged_data, vectors_data, ner_data, preprocessed_questions, tagged_questions, vectors_questions, ner_questions)
     # TODO: qAnswerer.generateWHQ()
 
     qAnswerer.printAnswers()
