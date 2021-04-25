@@ -38,15 +38,16 @@ class Answerer():
         # list of all the answers in order of questions asked
         # (questions are in the form of strings)
         self.answers = []
+        self.wh_tags = ['WDT', 'WP', 'WRB']
+
 
 
     # input i: the index of the question we are identifying
     # returns True if question at self.questions[i] is a WH-question
     # returns False otherwise
-    wh_tags = ['WDT', 'WP', 'WRB']
     def isWHQuestion(self, i):
         for (word, tag) in self.tagged_questions[i]:
-            if tag in wh_tags:
+            if tag in self.wh_tags:
                 return True
         return False
             
@@ -71,18 +72,20 @@ class Answerer():
     # input i: the index of question to answer
     # REQUIRES: ith question is Yes/no question
     # output: string that is the most likely answer
-    def answerYesNoQuestion(self, question):
+    def answerYesNoQuestion(self, i):
+        return
 
     # answers questions in self.questions and puts answers in same order
     # in self.answers
-    # output: list of strings
+    # output: none
     def answerQuestions(self):
         for i in range(len(self.questions)):
-            if isWHQuestion(i):
-                answerWHQuestion(i)
+            if self.isWHQuestion(i):
+                self.answers.append(self.answerWHQuestion(i))
             else:
-                # TODO
-                answerYesNoQuestion(self.questions[i])
+                # TODO: implement answerY/N
+                self.answers.append(self.answerYesNoQuestion(i))
+        return
 
     def printAnswers(self):
         for answer in self.answers:
@@ -105,7 +108,9 @@ if __name__ == "__main__":
     vectors_questions = preprocess.vectors(questions)
     ner_questions = preprocess.ner(questions)
 
+    # make the question answerer
     qAnswerer = Answerer(preprocessed_data, tagged_data, vectors_data, ner_data, preprocessed_questions, tagged_questions, vectors_questions, ner_questions)
-    # TODO: qAnswerer.generateWHQ()
-
+    # answer questions
+    qAnswerer.answerQuestions()
+    # print results
     qAnswerer.printAnswers()

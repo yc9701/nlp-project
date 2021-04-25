@@ -32,6 +32,16 @@ def pos_tokenize(data):
         tags.append(tagged)
     return (words, tags)
 
+# returns a list of the nlp represenation of each sentence
+def vectors(data):
+    sentences = nltk.sent_tokenize(data)
+    vectors = []
+    for sentence in sentences:
+        doc = nlp(sentence)
+        vectors.append(doc)
+    return vectors
+
+
 def ner(data):
     result = nlp(data)
     return [(X.text, X.label_) for X in result.ents]
