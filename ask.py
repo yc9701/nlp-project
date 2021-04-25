@@ -6,8 +6,8 @@ from bllipparser import RerankingParser
 rrp = RerankingParser.fetch_and_load('WSJ-PTB3', verbose=True)
 import spacy
 from spacy import displacy
-import en_core_web_sm
-nlp = en_core_web_sm.load()
+import en_core_web_md
+nlp = en_core_web_md.load()
 import sys
 import preprocessing as preprocess
 from nltk.corpus import wordnet

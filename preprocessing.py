@@ -5,8 +5,8 @@ from nltk.tag import pos_tag
 import spacy
 from spacy import displacy
 from collections import Counter
-import en_core_web_sm
-nlp = en_core_web_sm.load()
+import en_core_web_md
+nlp = en_core_web_md.load()
 from pprint import pprint
 import neuralcoref
 
