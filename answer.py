@@ -65,22 +65,28 @@ class Answerer():
     # REQUIRES: ith question is WH question
     # output: string that is the most likely answer
     def answerWHQuestion(self, i):
-        return self.mostSimilar(i)
-
-        # TODO: delete this old comment
         # store a running tab of the index of the current most similar sentence
-        # find answer in sentence by going through each NP in the sentence
-        # and seeing if the NP is in the question. If it is, we ignore.
-        # If it isn't, then we check the NER of the NP. If the named entity
-        # matches our WH-word, we add this NP as the answer to possible answers
+        sentence = self.mostSimilar(i)
+        # find answer in sentence by going through each word in the sentence
+        # and seeing if it's in the question
+        result = ""
+        for word in sentence:
+            if word not in string.punctuation and word not in self.questions[i]:
+                result += word + " "
+        result = result[0:len(result)-2]
+        return result
   
     # answers the ith question
     # input i: the index of question to answer
     # REQUIRES: ith question is Yes/no question
     # output: string that is the most likely answer
     def answerYesNoQuestion(self, i):
-        # get a similar sentence
+        # get the most similar sentence
         sentence = self.mostSimilar(i)
+        # suggestion:
+        # remove all the words that are in both the sentence & the question
+        # if in the remaining words there is at least 1 antonym then return No
+        # (make sure to check for "not"s in the sentence!)
         return
 
     # answers questions in self.questions and puts answers in same order
@@ -93,7 +99,6 @@ class Answerer():
             else:
                 # TODO: implement answerY/N
                 self.answers.append(self.answerYesNoQuestion(i))
-        return
 
     def printAnswers(self):
         for answer in self.answers:
