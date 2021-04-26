@@ -16,6 +16,8 @@ auxi_verbs = ["am", "is", "are", "was", "were", "have", "has",
     "had", "do", "does", "did", "will", "would", "shall", "should", 
     "may", "might", "must", "can", "could"]
 
+negate_words = ["not", "never", "no, "n't"]
+
 class Answerer():
     def __init__(self, preprocessed_data, tagged_data, vectors_data, ner_data, 
     preprocessed_questions, tagged_questions, vectors_questions, ner_questions):
@@ -87,7 +89,14 @@ class Answerer():
         # remove all the words that are in both the sentence & the question
         # if in the remaining words there is at least 1 antonym then return No
         # (make sure to check for "not"s in the sentence!)
-        return
+        negate = false
+        for word in negate_words:
+            if word in sentence:
+                if not negate:
+                    negate = true
+                else:
+                    negate = false
+        return negate
 
     # answers questions in self.questions and puts answers in same order
     # in self.answers
