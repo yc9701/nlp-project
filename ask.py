@@ -171,10 +171,10 @@ class Generator():
                     # Get the rest of the sentence and construct question
                     prev_phrase = self.printPhraseBefore(scored_parse_obj[0].ptb_parse, i)
                     if prev_phrase != "":
-                        prev_phase += " "
+                        prev_phrase += " "
                     next_phrase = self.printPhraseAfter(scored_parse_obj[0].ptb_parse, i)
                     if next_phrase != "":
-                        next_phase = " " + next_phrase
+                        next_phrase = " " + next_phrase
                     question = prev_phrase + sub + next_phrase
                     question = question[0:(len(question)-2)] + "?"
 
