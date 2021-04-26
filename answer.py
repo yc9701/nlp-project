@@ -96,7 +96,9 @@ class Answerer():
                     negate = true
                 else:
                     negate = false
-        return negate
+        if negate
+            return "Yes"
+        return "No"
 
     # answers questions in self.questions and puts answers in same order
     # in self.answers
