@@ -44,16 +44,16 @@ class Generator():
             return phrase
         for i in range(index):
             tree_phrase = parse_tree.__getitem__(i).tokens()
-            for token  in tree_phrase:
+            for token in tree_phrase:
                 if token == "-LRB-":
                     if preceeding_space:
                         phrase += " "
                     phrase += "("
                     preceeding_space = False
-                if token == "-RRB-":
+                elif token == "-RRB-":
                     phrase += ")"
                     preceeding_space = True
-                if token in string.punctuation:
+                elif token in string.punctuation:
                     phrase += token
                     preceeding_space = True
                 else:
@@ -78,10 +78,10 @@ class Generator():
                         phrase += " "
                     phrase += "("
                     preceeding_space = False
-                if token == "-RRB-":
+                elif token == "-RRB-":
                     phrase += ")"
                     preceeding_space = True
-                if token in string.punctuation:
+                elif token in string.punctuation:
                     phrase += token
                     preceeding_space = True
                 else:
@@ -103,7 +103,7 @@ class Generator():
             for sub in poss_subs:
                 prev_phrase = self.printPhraseBefore(parse_tree, i)
                 if prev_phrase != "":
-                    prev_phase += " "
+                    prev_phrase += " "
                 next_phrase = self.printPhraseAfter(parse_tree, i)
                 if next_phrase != "":
                     next_phrase = " " + next_phrase
@@ -264,26 +264,27 @@ class Generator():
             self.noQuestions.add(" ".join(result))
 
     def getTopNQs(self, n):
-        print("wh questions")
+        # print("wh questions")
+        # TODO: finalize ranking questions
         count = 0
         for i in self.whQuestions:
             count += 1
             print(i)
-            if count == 10: break
+            if count == (n//3 + n%3): break
 
-        print("yes questions")
+        # print("yes questions")
         count = 0
         for i in self.yesQuestions:
             count += 1
             print(i)
-            if count == 10: break
+            if count == n//3: break
         
-        print("no questions")
+        # print("no questions")
         count = 0
         for i in self.noQuestions:
             count += 1
             print(i)
-            if count == 10: break
+            if count == n//3: break
 
 if __name__ == "__main__":
     # Files
@@ -295,11 +296,11 @@ if __name__ == "__main__":
     ner_data = preprocess.ner(data)
 
     qGenerator = Generator(preprocessed_data, tagged_data, ner_data)
-    print("WHQ")
+    # print("WHQ")
     qGenerator.generateWHQ()
-    print("YESQ")
+    # print("YESQ")
     qGenerator.generateYesQ()
-    print("NOQ")
+    # print("NOQ")
     qGenerator.generateNoQ()
 
     qGenerator.getTopNQs(nquestions)
