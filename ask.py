@@ -166,6 +166,48 @@ class Generator():
             if not(question == ""):
                 self.yesQuestions.add(question)
 
+    def antonymSentence(self, sentence):
+        result = []
+        no_ant_result = []
+        ant_ind = []
+        questions = []
+
+        for i in range(len(sentence)):
+            result.append(sentence[i][0])
+            no_ant_result.append(sentence[i][0])
+            if sentence[i][0] in auxi_verbs:
+                result.pop()
+                for k in range(i+1, len(sentence)):
+                    antonyms = []
+                    no_ant_result.append(sentence[k][0])
+                    # if punctuation, pass
+                    if sentence[k][0] == ';':
+                        break
+
+                    # check if there's an adjective that can be negated
+                    if sentence[k][1] == 'JJ':
+                        for syn in wordnet.synsets(sentence[k][0]):
+                            for lemma in syn.lemmas():
+                                if lemma.antonyms():
+                                    antonyms.append(lemma.antonyms()[0].name())
+                    # for now, just add the first antonym; but later, should be able to add all antonyms
+                    if len(antonyms) > 0:
+                        result.append(antonyms)
+                        print(antonyms)
+                        ant_ind.append(k)
+
+                    else:
+                        result.append(sentence[k][0])
+                break
+
+        for i in ant_ind:
+            antonyms = result[i]
+
+        result.insert(0, sentence[i][0][0].swapcase() + sentence[i][0][1:])
+        result.append("?")
+        print(result)
+
+
     def generateNoQ(self):
         for sentence in self.tagged:
             result = []
@@ -180,64 +222,36 @@ class Generator():
                     if i < len(sentence) - 1:
                         for k in range(i+1, len(sentence)):
                             result.append(sentence[k][0])
+                
+                if sentence[i][0] == ";":
+                    break
                     
-                    result.insert(0, sentence[i][0][0].swapcase() + sentence[i][0][1:])
-                    result.append("?")
+            result.insert(0, sentence[i][0][0].swapcase() + sentence[i][0][1:])
+            result.append("?")
 
             self.noQuestions.add(" ".join(result))
+            # print(" ".join(result))
 
-            result = []
-            for i in range(len(sentence)):
-                if sentence[i][0] in auxi_verbs:
-                    for j in range(i):
-                        result.append(sentence[j][0])
-
-                    if i < len(sentence) - 1:
-                        for k in range(i+1, len(sentence)):
-                            # if punctuation, pass
-                            if sentence[k][0] in string.punctuation:
-                                continue
-
-                            # check if there's an adjective that can be negated
-                            if sentence[k][1] == 'JJ':
-                                antonyms = []
-                                for syn in wordnet.synsets(sentence[k][0]):
-                                    for lemma in syn.lemmas():
-                                        if lemma.antonyms():
-                                            antonyms.append(lemma.antonyms()[0].name())
-                                            break
-                                # for now, just add the first antonym; but later, should be able to add all antonyms
-                                if len(antonyms) > 0:
-                                    result.append(antonyms[0])
-
-                            else:
-                                result.append(sentence[k][0])
-                    
-                    result.insert(0, sentence[i][0][0].swapcase() + sentence[i][0][1:])
-                    result.append("?")
-            self.noQuestions.add(" ".join(result))
+            result = self.antonymSentence(sentence)
+            # self.noQuestions.add(" ".join(result))
 
     def getTopNQs(self, n):
-        print("wh questions")
-        count = 0
-        for i in self.whQuestions:
-            count += 1
-            print(i)
-            if count == 10: break
+        f = open("questions.txt", "w")
 
-        print("yes questions")
-        count = 0
+        f.write("wh questions\n")
+        for i in self.whQuestions:
+            f.write(i)
+            f.write("\n")
+        f.write("\nyes questions\n")
         for i in self.yesQuestions:
-            count += 1
-            print(i)
-            if count == 10: break
-        
-        print("no questions")
-        count = 0
+            f.write(i)
+            f.write("\n")
+        f.write("\nno questions\n")
         for i in self.noQuestions:
-            count += 1
-            print(i)
-            if count == 10: break
+            f.write(i)
+            f.write("\n")
+
+        f.close()
 
 if __name__ == "__main__":
     # Files
@@ -250,9 +264,9 @@ if __name__ == "__main__":
 
     qGenerator = Generator(preprocessed_data, tagged_data, ner_data)
     print("WHQ")
-    qGenerator.generateWHQ()
+    # qGenerator.generateWHQ()
     print("YESQ")
-    qGenerator.generateYesQ()
+    # qGenerator.generateYesQ()
     print("NOQ")
     qGenerator.generateNoQ()
 
