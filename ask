@@ -106,31 +106,33 @@ def download_and_install_model(model_name, models_directory=None,
     # by convention, all models are currently in tar.bz2 format
     # we may want to generalize this code later
     assert downloaded_filename.lower().endswith('.bz2')
-    command = 'tar xvjf %s >/dev/null 2>&1' % downloaded_filename
+    # command = 'tar xvjf %s >/dev/null 2>&1' % downloaded_filename
+    command = 'tar xvjf %s' % downloaded_filename
     system(command)
     chdir(orig_path)
 
     return output_path
 
-with suppress_output(suppress_stdout=True,suppress_stderr=True):
-    import nltk
-    import string
-    from bllipparser import RerankingParser
-    download_and_install_model('WSJ-PTB3', verbose=False)
-    rrp = RerankingParser.fetch_and_load('WSJ-PTB3', verbose=False)
-    import spacy
-    from spacy import displacy
-    import en_core_web_md
-    nlp = en_core_web_md.load()
-    import preprocessing as preprocess
-    from nltk.corpus import wordnet
-    nltk.download('punkt')
-    nltk.download('averaged_perceptron_tagger')
-    nltk.download('wordnet')
+# with suppress_output(suppress_stdout=True,suppress_stderr=True):
+import nltk
+import string
+from bllipparser import RerankingParser
+# download_and_install_model('WSJ-PTB3', verbose=False)
+rrp = RerankingParser.fetch_and_load('WSJ-PTB3', verbose=False)
+import spacy
+from spacy import displacy
+import en_core_web_md
+nlp = en_core_web_md.load()
+import preprocessing as preprocess
+from nltk.corpus import wordnet
+nltk.download('punkt')
+nltk.download('averaged_perceptron_tagger')
+nltk.download('wordnet')
 
 auxi_verbs = ["am", "is", "are", "was", "were", "have", "has", 
     "had", "do", "does", "did", "will", "would", "shall", "should", 
     "may", "might", "must", "can", "could"]
+q_begins = ["Were", "Might", "Was", "Is", "Did", "Had", "Has", "Could"]
 
 class Generator():
     def __init__(self, preprocessed_data, tagged_data, ner_data):
@@ -329,10 +331,63 @@ class Generator():
             if not(question == ""):
                 self.yesQuestions.add(question)
 
+    def antonymSentence(self, sentence):
+        result = []
+        no_ant_result = []
+        ant_ind = []
+        questions = []
+        for i in range(len(sentence)):
+            result.append(sentence[i][0])
+            no_ant_result.append(sentence[i][0])
+            if sentence[i][0] in auxi_verbs:
+                result.pop()
+                no_ant_result.pop()
+                for k in range(i+1, len(sentence)):
+                    antonyms = set()
+                    no_ant_result.append(sentence[k][0])
+                    # if punctuation, pass
+                    if sentence[k][0] == ';':
+                        break
+
+                    # check if there's an adjective that can be negated
+                    if sentence[k][1] == 'JJ':
+                        for syn in wordnet.synsets(sentence[k][0]):
+                            for lemma in syn.lemmas():
+                                if lemma.antonyms():
+                                    antonyms.add(lemma.antonyms()[0].name())
+                    # for now, just add the first antonym; but later, should be able to add all antonyms
+                    if len(antonyms) > 1:
+                        result.append(antonyms)
+                        ant_ind.append(k)
+                    elif len(antonyms) == 1:
+                        result.append(antonyms)
+                    else:
+                        result.append(sentence[k][0])
+                result.insert(0, sentence[i][0][0].swapcase() + sentence[i][0][1:])
+                result.append("?")
+                no_ant_result.insert(0, sentence[i][0][0].swapcase() + sentence[i][0][1:])
+                no_ant_result.append("?")
+                break
+
+        questions.append(no_ant_result)
+
+        for i in ant_ind:
+            antonyms = result[i] # list of antonyms at that ind
+            temp_questions = []
+            for question in questions:
+                if question == []:
+                    continue
+                for k in antonyms:
+                    new_question = question
+                    new_question[i] = k
+            
+            questions.append(temp_questions)
+
+        return questions
+
     def generateNoQ(self):
         for sentence in self.tagged:
             result = []
-
             for i in range(len(sentence)):
                 if sentence[i][0] in auxi_verbs:
                     for j in range(i):
@@ -342,43 +397,45 @@ class Generator():
 
                     if i < len(sentence) - 1:
                         for k in range(i+1, len(sentence)):
+                            if sentence[k][0] == ';':
+                                break
                             result.append(sentence[k][0])
+                
+                if sentence[i][0] == ";":
+                    break
                     
-                    result.insert(0, sentence[i][0][0].swapcase() + sentence[i][0][1:])
+            result.insert(0, sentence[i][0][0].swapcase() + sentence[i][0][1:])
+
+            if result[0] == '.':
+                del result[0]
+            if not result == []:
+                if result[len(result)-1] == '.':
+                    del result[-1]
+                if result[len(result)-2] == '.':
+                    del result[len(result)-2]
+                if not result[0] in q_begins:
+                    result[0] = result[0].lower()
+                    result.insert(0,"Did")
+                else:
+                    result[1] = result[1].lower()
+                if not len(result) == 1:
                     result.append("?")
+                    self.noQuestions.add(" ".join(result))
 
-            self.noQuestions.add(" ".join(result))
-
-            result = []
-            for i in range(len(sentence)):
-                if sentence[i][0] in auxi_verbs:
-                    for j in range(i):
-                        result.append(sentence[j][0])
-
-                    if i < len(sentence) - 1:
-                        for k in range(i+1, len(sentence)):
-                            # if punctuation, pass
-                            if sentence[k][0] in string.punctuation:
-                                continue
-
-                            # check if there's an adjective that can be negated
-                            if sentence[k][1] == 'JJ':
-                                antonyms = []
-                                for syn in wordnet.synsets(sentence[k][0]):
-                                    for lemma in syn.lemmas():
-                                        if lemma.antonyms():
-                                            antonyms.append(lemma.antonyms()[0].name())
-                                            break
-                                # for now, just add the first antonym; but later, should be able to add all antonyms
-                                if len(antonyms) > 0:
-                                    result.append(antonyms[0])
-
-                            else:
-                                result.append(sentence[k][0])
-                    
-                    result.insert(0, sentence[i][0][0].swapcase() + sentence[i][0][1:])
-                    result.append("?")
-            self.noQuestions.add(" ".join(result))
+            antonym_questions = self.antonymSentence(sentence)
+            for i in antonym_questions:
+                temp = i
+                if temp == []: continue
+                if temp[0] == '.':
+                    del temp[0]
+                if temp[len(temp)-2] == '.':
+                    del temp[len(temp)-2]
+                if not temp[len(temp)-1] == '?':
+                    temp.append('?')
+                if not temp[0] in q_begins:
+                    temp[0] = temp[0].lower()
+                    temp.insert(0,"Did")
+                self.noQuestions.add(" ".join(temp))
 
     def getTopNQs(self, n):
         # print("wh questions")
@@ -413,13 +470,8 @@ if __name__ == "__main__":
     ner_data = preprocess.ner(data)
 
     qGenerator = Generator(preprocessed_data, tagged_data, ner_data)
-    # print("WHQ")
     qGenerator.generateWHQ()
-    # print("YESQ")
     qGenerator.generateYesQ()
-    # print("NOQ")
     qGenerator.generateNoQ()
 
     qGenerator.getTopNQs(nquestions)
-    # for question in questions:
-    #     print(question + '\n')
