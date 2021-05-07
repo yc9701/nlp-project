@@ -125,6 +125,7 @@ import en_core_web_md
 nlp = en_core_web_md.load()
 import preprocessing as preprocess
 from nltk.corpus import wordnet
+import statistics
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
 nltk.download('wordnet')

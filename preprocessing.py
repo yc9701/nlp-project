@@ -16,10 +16,15 @@ import neuralcoref
 # https://towardsdatascience.com/named-entity-recognition-with-nltk-and-spacy-8c4a7d88e7da
 
 def open_file(filename):
+    data = []
     with open(filename, 'r') as f:
-        data = f.read()
-    
-    return data
+        for line in f:
+            if line[-1] in string.punctuation:
+                data.append(line)
+            if line == "References":
+                break
+    return "\n".join(data)
+
 
 # returns (list of words, list of POS tags)
 def pos_tokenize(data):
