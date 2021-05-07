@@ -11,6 +11,8 @@ nlp = en_core_web_md.load()
 import sys
 import preprocessing as preprocess
 from nltk.corpus import wordnet
+from nltk.corpus import stopwords
+
 
 auxi_verbs = ["am", "is", "are", "was", "were", "have", "has", 
     "had", "do", "does", "did", "will", "would", "shall", "should", 
@@ -52,15 +54,25 @@ class Answerer():
             if tag in self.wh_tags:
                 return True
         return False
+    
+    # input sentence: the sentence for stopwords to be removed
+    # returns The same sentence list but with common words removed
+    def removeStopwords(self, sentence):
+        common_words = set(stopwords.words('english'))
+        return filter(lambda w: not w.lower() in common_words, sentence)
+
     # finds the sentence in the document that is most similar to the ith question
     # input i: the index of question to search for
     # output: string that is most similar
     def mostSimilar(self, i):
+        question = self.question_vectors[i]
+        query = self.removeStopwords(question)
         candidate_index = 0
         for j in range(len(self.vectors)):
-            if self.vectors[j].similarity(self.question_vectors[i]) > self.vectors[candidate_index].similarity(self.question_vectors[i]):
+            if self.vectors[j].similarity(query) > self.vectors[candidate_index].similarity(query):
                 candidate_index = j
         return self.data[candidate_index]
+        
     # answers the ith question
     # given a question, parses the document looking for the sentence with the highest similarity and returns it
     # input i: the index of question to answer

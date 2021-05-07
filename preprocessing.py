@@ -2,6 +2,7 @@ import nltk
 import argparse
 from nltk.tokenize import word_tokenize
 from nltk.tag import pos_tag
+from nltk.corpus import stopwords
 import spacy
 from spacy import displacy
 from collections import Counter
@@ -33,11 +34,14 @@ def pos_tokenize(data):
     return (words, tags)
 
 # returns a list of the nlp represenation of each sentence
+# removes common stopwords for said representation to improve similarity use
 def vectors(data):
+    common_words = set(stopwords.words('english'))
     sentences = nltk.sent_tokenize(data)
     vectors = []
     for sentence in sentences:
-        doc = nlp(sentence)
+        common_removed = filter(lambda w: not w.lower() in common_words, sentence)
+        doc = nlp(common_removed)
         vectors.append(doc)
     return vectors
 
