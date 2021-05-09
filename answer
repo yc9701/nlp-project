@@ -97,20 +97,37 @@ class Answerer():
     def answerYesNoQuestion(self, i):
         # get the most similar sentence
         sentence = self.mostSimilar(i)
-        # suggestion:
-        # remove all the words that are in both the sentence & the question
-        # if in the remaining words there is at least 1 antonym then return No
-        # (make sure to check for "not"s in the sentence!)
-        negate = False
-        for word in negate_words:
-            if word in sentence:
-                if not negate:
-                    negate = True
-                else:
-                    negate = False
-        if negate:
-            return "Yes"
-        return "No"
+        question = self.questions[i]
+        # answer = true
+        # look at sentence
+        # for each word in the sentence, see if synonym/antonym in question
+        # check word in sentence and question
+        # case on each being preceeded by negating words
+        for j in range(len(sentence)):
+            word = sentence[j]
+            synonyms = set()
+            antonyms = set()
+            for synset in wordnet.synsets(word):
+                for lemma in synset.lemmas():
+                    synonyms.add(lemma.name())
+                    if lemma.antonyms():
+                        for anti in lemma.antonyms():
+                            antonyms.add(anti.name())
+            for k in range(len(question)):
+                if question[k] = word or question[k] in synonyms:
+                    if (j > 0 and sentence[j-1] in negate_words) and (k = 0 or (k > 0 and question[k-1] not in negate_words)):
+                        return "No"
+                    elif (j = 0 or (j > 0 and sentence[j-1] not in negate_words)) and (k > 0 and question[k-1] in negate_words):
+                        return "No"
+                elif question[k] in antonyms:
+                    if (j = 0 or (j > 0 and sentence[j-1] not in negate_words)) and (k = 0 or (k > 0 and question[k-1] not in negate_words)):
+                        return "No"
+                    elif (j > 0 and sentence[j-1] in negate_words) and (k > 0 and question[k-1] in negate_words):
+                        return "No"
+        return "Yes"
+
+
+            
 
     # answers questions in self.questions and puts answers in same order
     # in self.answers
