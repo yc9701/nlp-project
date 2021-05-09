@@ -126,6 +126,7 @@ nlp = en_core_web_md.load()
 import preprocessing as preprocess
 from nltk.corpus import wordnet
 import statistics
+import numpy
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
 nltk.download('wordnet')
@@ -306,8 +307,6 @@ class Generator():
         # need a way besides using NER. for
         # example detecting words like "because" or "due to"
     
-
-    
     def sentence_yes_questions(self, sentence):
         result = []
         for i in range(len(sentence)):
@@ -386,6 +385,25 @@ class Generator():
 
         return questions
 
+    def makeString(self, question): # question : list
+        output = ""
+        paren = False # if prev is an open paren
+        for i in question:
+            if not i in string.punctuation:
+                if not paren:
+                    output += " "
+                else:
+                    paren = False
+                output += i
+            else:
+                if i == "(":
+                    output += " "
+                    paren = True
+                output += i
+
+        del output[0]
+        return output
+
     def generateNoQ(self):
         for sentence in self.tagged:
             result = []
@@ -421,7 +439,7 @@ class Generator():
                     result[1] = result[1].lower()
                 if not len(result) == 1:
                     result.append("?")
-                    self.noQuestions.add(" ".join(result))
+                    self.noQuestions.add(self.makeString(result))
 
             antonym_questions = self.antonymSentence(sentence)
             for i in antonym_questions:
@@ -436,7 +454,7 @@ class Generator():
                 if not temp[0] in q_begins:
                     temp[0] = temp[0].lower()
                     temp.insert(0,"Did")
-                self.noQuestions.add(" ".join(temp))
+                self.noQuestions.add(self.makeString(temp))
 
     # returns a list of question lengths, with corresponding indices
     def getLengths(self, questions):
@@ -480,7 +498,7 @@ class Generator():
     # given a set/list of questions, assign a quartile distribution based on lengths
     def getDistribution(self, questions):
         lengths = self.getLengths(questions)
-        return [round(q, 1) for q in statistics.quantiles(lengths, n=10)]
+        return [round(q, 1) for q in numpy.percentile(lengths, numpy.arange(0, 100, 10))]
 
     # given a set of questions, sorts them in order of decreasing score
     def sortQuestions(self, questions):
@@ -495,17 +513,21 @@ class Generator():
         sorted_wh = self.sortQuestions(self.whQuestions)
         sorted_yes = self.sortQuestions(self.yesQuestions)
         sorted_no = self.sortQuestions(self.noQuestions)
+
+        big_count = 0
         for i in sorted_wh:
             if i.isspace(): continue # filter out empty questions
             count += 1
             print(i)
-            if count == (n//2 + n%2): break
+            big_count += 1
+            if count == (n//2 + n%2 + (n%4)//2): break
 
         count = 0
         for i in sorted_yes:
             if i.isspace(): continue
             count += 1
             print(i)
+            big_count += 1
             if count == n//4: break
         
         count = 0
@@ -513,7 +535,10 @@ class Generator():
             if i.isspace(): continue
             count += 1
             print(i)
+            big_count += 1
             if count == n//4: break
+
+        print("num questions: " + str(big_count))
 
 if __name__ == "__main__":
     # Files
