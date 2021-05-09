@@ -134,6 +134,7 @@ nltk.download('wordnet')
 auxi_verbs = ["am", "is", "are", "was", "were", "have", "has", 
     "had", "do", "does", "did", "will", "would", "shall", "should", 
     "may", "might", "must", "can", "could"]
+negate_words = ["not", "never", "no", "n't"]
 q_begins = ["Were", "Might", "Was", "Is", "Did", "Had", "Has", "Could"]
 
 class Generator():
@@ -307,9 +308,15 @@ class Generator():
         # need a way besides using NER. for
         # example detecting words like "because" or "due to"
     
-    def sentence_yes_questions(self, sentence):
+    def sentence_yes_questions(self, sentence_ini):
         result = []
+        if (sentence_init[0] == "However"):
+            sentence = sentence_ini[2:]
+        else:
+            sentence = sentence_ini
         for i in range(len(sentence)):
+            if ((sentence[i] in negate_words) or ("n't" in sentence[i]) or (sentence[i] == ",")):
+                return ""
             if (sentence[i] in auxi_verbs):
                 for j in range(i):
                     result.append(sentence[j])
@@ -320,8 +327,8 @@ class Generator():
                 result.insert(0, sentence[i][0].swapcase() + sentence[i][1:])
                 result2 = ""
                 for word in result:
-                    result2+=" "+word
-                result2+="?"
+                    result2 += " "+word
+                result2 += "?"
                 return result2[1:]
         return ""
 
