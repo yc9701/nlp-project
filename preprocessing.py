@@ -10,6 +10,7 @@ import en_core_web_md
 nlp = en_core_web_md.load()
 from pprint import pprint
 import neuralcoref
+import string
 
 # https://medium.com/@muddaprince456/categorizing-and-pos-tagging-with-nltk-python-28f2bc9312c3
 # https://medium.com/@ODSC/intro-to-language-processing-with-the-nltk-59aa26b9d056 
