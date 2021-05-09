@@ -484,19 +484,19 @@ class Generator():
         for i in sorted_wh:
             count += 1
             print(i)
-            if count == (n//3 + n%3): break
+            if count == (n//2 + n%2): break
 
         count = 0
         for i in sorted_yes:
             count += 1
             print(i)
-            if count == n//3: break
+            if count == n//4: break
         
         count = 0
         for i in sorted_no:
             count += 1
             print(i)
-            if count == n//3: break
+            if count == n//4: break
 
 if __name__ == "__main__":
     # Files
