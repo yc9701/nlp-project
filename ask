@@ -445,6 +445,16 @@ class Generator():
             lengths.append(len(sentence))
         return lengths
 
+    # find number of pronouns in question
+    def numPronouns(self, question):
+        count = 0
+        tokenized = nltk.word_tokenize(question)
+        tagged = nltk.pos_tag(tokenized)
+        for (word,tag) in tagged:
+            if tag == "PRP" or tag == "PRP$":
+                count += 1
+        return count
+
     # given a question, assigns a score of "goodness"
     # score is based off quantile with preference given to shorter questions
     def scoreQuestion(self, question, distribution):
@@ -460,7 +470,11 @@ class Generator():
         bonus = 0
         if rank < len(distribution)/2.0:
             bonus = 0.5
-        score = abs(len(distribution)/2.0 - rank) + bonus
+        
+        # give penalty to questions with more pronouns
+        penalty = 0.15 * self.numPronouns(question)
+        
+        score = abs(len(distribution)/2.0 - rank) + bonus - penalty
         return score
 
     # given a set/list of questions, assign a quartile distribution based on lengths
