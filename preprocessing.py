@@ -21,7 +21,7 @@ def open_file(filename):
         for line in f:
             if line[-1] in string.punctuation:
                 data.append(line)
-            if line == "References":
+            if line == "References" or line == "Notes" or line == "See also" or line == "Further reading" or line == "Bibliography" or line == "External links":
                 break
     return "\n".join(data)
 
