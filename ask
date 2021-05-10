@@ -529,39 +529,30 @@ class Generator():
 
 
     def getTopNQs(self, n):
-        count = 0
         sorted_wh = self.sortQuestions(self.whQuestions)
         sorted_yes = self.sortQuestions(self.yesQuestions)
         sorted_no = self.sortQuestions(self.noQuestions)
 
-        big_count = 0
+        count = 0
         for i in sorted_wh:
             if i.isspace(): continue # filter out empty questions
-            count += 1
+            if count >= (n//2 + n%2 + (n%4)//2): break
             print(i)
-            print()
-            big_count += 1
-            if count == (n//2 + n%2 + (n%4)//2): break
+            count += 1
 
         count = 0
         for i in sorted_yes:
             if i.isspace(): continue
-            count += 1
+            if count >= n//4: break
             print(i)
-            print()
-            big_count += 1
-            if count == n//4: break
+            count += 1
         
         count = 0
         for i in sorted_no:
             if i.isspace(): continue
-            count += 1
+            if count >= n//4: break
             print(i)
-            print()
-            big_count += 1
-            if count == n//4: break
-
-        print("num questions: " + str(big_count))
+            count += 1
 
 if __name__ == "__main__":
     # Files
