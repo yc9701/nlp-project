@@ -9,23 +9,27 @@ from collections import Counter
 import en_core_web_md
 nlp = en_core_web_md.load()
 from pprint import pprint
-import neuralcoref
 import string
 
 # https://medium.com/@muddaprince456/categorizing-and-pos-tagging-with-nltk-python-28f2bc9312c3
 # https://medium.com/@ODSC/intro-to-language-processing-with-the-nltk-59aa26b9d056 
 # https://towardsdatascience.com/named-entity-recognition-with-nltk-and-spacy-8c4a7d88e7da
 
-def open_file(filename):
+def open_file(filename, question=False):
     data = []
-    with open(filename, 'r') as f:
-        for line in f:
-            if len(line) > 1 and line[-2] in string.punctuation:
-                data.append(line)
-            if line == "References" or line == "Notes" or line == "See also" or line == "Further reading" or line == "Bibliography" or line == "External links":
-                break
+    if question:
+        with open(filename, 'r') as f:
+            for line in f:
+                if len(line) > 1:
+                    data.append(line)
+    else:
+        with open(filename, 'r') as f:
+            for line in f:
+                if len(line) > 1 and line[-2] in string.punctuation:
+                    data.append(line)
+                if line == "References" or line == "Notes" or line == "See also" or line == "Further reading" or line == "Bibliography" or line == "External links":
+                    break
     return "\n".join(data)
-
 
 # returns (list of words, list of POS tags)
 def pos_tokenize(data):
@@ -51,7 +55,6 @@ def vectors(data):
         doc = nlp(" ".join(common_removed))
         vectors.append(doc)
     return vectors
-
 
 def ner(data):
     result = nlp(data)

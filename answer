@@ -1,19 +1,136 @@
 #!/usr/bin/env python3
 
-import nltk
-import string
-from bllipparser import RerankingParser
-rrp = RerankingParser.fetch_and_load('WSJ-PTB3', verbose=True)
-import spacy
-from spacy import displacy
-import en_core_web_md
-nlp = en_core_web_md.load()
-import sys
-import preprocessing as preprocess
-from nltk.corpus import wordnet
-from nltk.corpus import stopwords
+import sys, os
+from os import makedirs, system, chdir, getcwd
+from os.path import basename, exists, join, expanduser
+from contextlib import contextmanager
+from six.moves.urllib.request import FancyURLopener
+from six.moves.urllib.parse import urlparse
 
-nltk.download('stopwords')
+class suppress_output: 
+    def __init__(self,suppress_stdout=False,suppress_stderr=False): 
+        self.suppress_stdout = suppress_stdout 
+        self.suppress_stderr = suppress_stderr 
+        self._stdout = None 
+        self._stderr = None
+    def __enter__(self): 
+        devnull = open(os.devnull, "w") 
+        if self.suppress_stdout: 
+            self._stdout = sys.stdout 
+            sys.stdout = devnull        
+        if self.suppress_stderr: 
+            self._stderr = sys.stderr 
+            sys.stderr = devnull 
+    def __exit__(self, *args): 
+        if self.suppress_stdout: 
+            sys.stdout = self._stdout 
+        if self.suppress_stderr: 
+            sys.stderr = self._stderr
+
+DEFAULT_MODELS_DIR = '~/.local/share/bllipparser'
+
+class ModelInfo:
+    """Information about a unified BLLIP Parser model. Interface and
+    fields subject to change."""
+    def __init__(self, model_desc, url, uncompressed_size):
+        """uncompressed_size is approximate size in megabytes."""
+        self.model_desc = model_desc
+        self.url = url
+        self.uncompressed_size = uncompressed_size
+    def __str__(self):
+        return "%s [%sMB]" % (self.model_desc, self.uncompressed_size)
+
+models = {
+    'WSJ-PTB3': ModelInfo('Wall Street Journal corpus from Penn Treebank, version 3',
+                          'https://www.dropbox.com/s/ulcfs7my1ifriuu/BLLIP-WSJ-PTB3.tar.bz2?dl=1', 55)
+}
+
+def download_and_install_model(model_name, models_directory=None,
+                               verbose=False):
+    """Downloads and installs models to a specific directory. Models can
+    be specified by simple names (use list_models() for a list of known
+    models) or a URL. If the model is already installed as a subdirectory
+    of models_directory, it won't download it again. By default,
+    models will be downloaded to "~/.local/share/bllipparser". Setting
+    verbose=True will print extra details and download progress. Returns
+    the path to the new model."""
+
+    if model_name.lower().startswith('http'):
+        parsed_url = urlparse(model_name)
+        model_url = model_name
+        model_name = basename(parsed_url.path).split('.')[0]
+    elif model_name in models:
+        model_url = models[model_name].url
+    else:
+        raise UnknownParserModel(model_name)
+
+    models_directory = models_directory or DEFAULT_MODELS_DIR
+    models_directory = expanduser(models_directory)
+
+    output_path = join(models_directory, model_name)
+
+    if exists(output_path):
+        return output_path
+
+    if verbose:
+        def status_func(blocks, block_size, total_size):
+            amount_downloaded = blocks * block_size
+            if total_size == -1:
+                sys.stdout.write('Downloaded %s\r' % amount_downloaded)
+            else:
+                percent_downloaded = 100 * amount_downloaded / total_size
+                size = amount_downloaded / (1024 ** 2)
+                sys.stdout.write('Downloaded %.1f%% (%.1f MB)\r' %
+                                 (percent_downloaded, size))
+    else:
+        status_func = None
+
+    # needed since 404s, etc. aren't handled otherwise
+    class ErrorAwareOpener(FancyURLopener):
+        def http_error_default(self, url, fp, errcode, errmsg, headers):
+            raise SystemExit("Error downloading model (%s %s)" %
+                             (errcode, errmsg))
+
+    opener = ErrorAwareOpener()
+    downloaded_filename, headers = opener.retrieve(model_url,
+                                                   reporthook=status_func)
+
+    try:
+        makedirs(output_path)
+    except OSError as ose:
+        if ose.errno != 17:
+            raise
+
+    orig_path = getcwd()
+    chdir(output_path)
+    # by convention, all models are currently in tar.bz2 format
+    # we may want to generalize this code later
+    assert downloaded_filename.lower().endswith('.bz2')
+    # command = 'tar xvjf %s >/dev/null 2>&1' % downloaded_filename
+    command = 'tar xvjf %s >/dev/null 2>&1' % downloaded_filename
+    system(command)
+    chdir(orig_path)
+
+    return output_path
+
+with suppress_output(suppress_stdout=True,suppress_stderr=True):
+    import nltk
+    import string
+    from bllipparser import RerankingParser
+    download_and_install_model('WSJ-PTB3', verbose=False)
+    rrp = RerankingParser.fetch_and_load('WSJ-PTB3', verbose=False)
+    import spacy
+    from spacy import displacy
+    import en_core_web_md
+    nlp = en_core_web_md.load()
+    import sys
+    import preprocessing as preprocess
+    from nltk.corpus import wordnet
+    from nltk.corpus import stopwords
+    nltk.download('stopwords')
+    nltk.download('punkt')
+    nltk.download('averaged_perceptron_tagger')
+    nltk.download('wordnet')
 
 auxi_verbs = ["am", "is", "are", "was", "were", "have", "has", 
     "had", "do", "does", "did", "will", "would", "shall", "should", 
@@ -60,7 +177,6 @@ class Answerer():
     # returns The same sentence list but with common words removed
     def removeStopwords(self, sentence):
         common_words = set(stopwords.words('english'))
-        print(sentence)
         sentence_list = nltk.word_tokenize(str(sentence))
         return nlp(" ".join(list(filter(lambda w: w.lower() not in common_words, sentence_list))))
 
@@ -145,7 +261,7 @@ class Answerer():
 
     def printAnswers(self):
         for answer in self.answers:
-            print(answer + '\n')
+            print(answer)
 
 if __name__ == "__main__":
     # Files
@@ -159,7 +275,7 @@ if __name__ == "__main__":
     ner_data = preprocess.ner(data)
 
     # preprocess questions
-    questions = preprocess.open_file(questions_file)
+    questions = preprocess.open_file(questions_file, question=True)
     (preprocessed_questions, tagged_questions) = preprocess.pos_tokenize(questions)
     vectors_questions = preprocess.vectors(questions)
     ner_questions = preprocess.ner(questions)

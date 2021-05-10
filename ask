@@ -107,30 +107,30 @@ def download_and_install_model(model_name, models_directory=None,
     # we may want to generalize this code later
     assert downloaded_filename.lower().endswith('.bz2')
     # command = 'tar xvjf %s >/dev/null 2>&1' % downloaded_filename
-    command = 'tar xvjf %s' % downloaded_filename
+    command = 'tar xvjf %s >/dev/null 2>&1' % downloaded_filename
     system(command)
     chdir(orig_path)
 
     return output_path
 
-# with suppress_output(suppress_stdout=True,suppress_stderr=True):
-import nltk
-import string
-from bllipparser import RerankingParser
-# download_and_install_model('WSJ-PTB3', verbose=False)
-rrp = RerankingParser.fetch_and_load('WSJ-PTB3', verbose=False)
-import spacy
-from spacy import displacy
-import en_core_web_md
-nlp = en_core_web_md.load()
-import preprocessing as preprocess
-from nltk.corpus import wordnet
-import statistics
-import numpy
-import random
-nltk.download('punkt')
-nltk.download('averaged_perceptron_tagger')
-nltk.download('wordnet')
+with suppress_output(suppress_stdout=True,suppress_stderr=True):
+    import nltk
+    import string
+    from bllipparser import RerankingParser
+    download_and_install_model('WSJ-PTB3', verbose=False)
+    rrp = RerankingParser.fetch_and_load('WSJ-PTB3', verbose=False)
+    import spacy
+    from spacy import displacy
+    import en_core_web_md
+    nlp = en_core_web_md.load()
+    import preprocessing as preprocess
+    from nltk.corpus import wordnet
+    import statistics
+    import numpy
+    import random
+    nltk.download('punkt')
+    nltk.download('averaged_perceptron_tagger')
+    nltk.download('wordnet')
 
 auxi_verbs = ["am", "is", "are", "was", "were", "have", "has", 
     "had", "do", "does", "did", "will", "would", "shall", "should", 
