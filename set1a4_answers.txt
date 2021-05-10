@@ -1,0 +1,4 @@
+Model directory: /Users/yoonachoi/.local/share/bllipparser/WSJ-PTB3
+Model directory already exists, not reinstalling
+sentence: he Egpn lnguge  cnvennll grupe n x jr chrnlgcl vn: rchc Egpn (befre 2600 BC), he recnruce lnguge f he Erl nc Per, l Egpn (c. 2600 – 2000 BC), he lnguge f he l Kng, le Egpn ( c. 2000 – wh ), he lnguge f he le Kng  erl New Kng) n cnnung n   lerr lnguge n he 4h cenur, Le Egpn (c. 1350 – 700 BC), rn per  hr neree Per, ec (c. 700 BC –  400), he vernculr f he Le Per, Plec n erl Rn Egp, Cpc (fer c. 200 CE), he vernculr  he e f Chrnn, n lurgcl lnguge f Egpn Chrn?
+<class 'spacy.tokens.doc.Doc'>

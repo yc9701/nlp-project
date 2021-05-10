@@ -127,6 +127,7 @@ import preprocessing as preprocess
 from nltk.corpus import wordnet
 import statistics
 import numpy
+import random
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
 nltk.download('wordnet')
@@ -173,6 +174,14 @@ class Generator():
                     preceeding_space = False
                 elif token == "-RRB-":
                     phrase += ")"
+                    preceeding_space = True
+                elif token == "-LSB-":
+                    if preceeding_space:
+                        phrase += " "
+                    phrase += "["
+                    preceeding_space = False
+                elif token == "-RSB-":
+                    phrase += "]"
                     preceeding_space = True
                 elif token in string.punctuation:
                     phrase += token
@@ -308,12 +317,12 @@ class Generator():
         # need a way besides using NER. for
         # example detecting words like "because" or "due to"
     
-    def sentence_yes_questions(self, sentence_ini):
+    def sentence_yes_questions(self, sentence_init):
         result = []
         if (sentence_init[0] == "However"):
-            sentence = sentence_ini[2:]
+            sentence = sentence_init[2:]
         else:
-            sentence = sentence_ini
+            sentence = sentence_init
         for i in range(len(sentence)):
             if ((sentence[i] in negate_words) or ("n't" in sentence[i]) or (sentence[i] == ",")):
                 return ""
@@ -406,10 +415,12 @@ class Generator():
                 if i == "(":
                     output += " "
                     paren = True
+                if i == ".":
+                    output += "?"
+                    break
                 output += i
 
-        del output[0]
-        return output
+        return output[1:]
 
     def generateNoQ(self):
         for sentence in self.tagged:
@@ -485,6 +496,8 @@ class Generator():
     def scoreQuestion(self, question, distribution):
         question_length = len(question)
         rank = 0
+        offset = 1
+
         for i in range(len(distribution)):
             if question_length < distribution[i]:
                 rank = i
@@ -494,13 +507,13 @@ class Generator():
         # bonus gives preference to shorter questions
         bonus = 0
         if rank < len(distribution)/2.0:
-            bonus = 0.5
+            bonus = 1.25
         
         # give penalty to questions with more pronouns
         penalty = 0.15 * self.numPronouns(question)
         
-        score = abs(len(distribution)/2.0 - rank) + bonus - penalty
-        return score
+        score = abs(len(distribution)/2.0 - rank - offset) + bonus - penalty
+        return score * random.uniform(0.5, 1) + random.uniform(-1, 1)
 
     # given a set/list of questions, assign a quartile distribution based on lengths
     def getDistribution(self, questions):
@@ -526,6 +539,7 @@ class Generator():
             if i.isspace(): continue # filter out empty questions
             count += 1
             print(i)
+            print()
             big_count += 1
             if count == (n//2 + n%2 + (n%4)//2): break
 
@@ -534,6 +548,7 @@ class Generator():
             if i.isspace(): continue
             count += 1
             print(i)
+            print()
             big_count += 1
             if count == n//4: break
         
@@ -542,6 +557,7 @@ class Generator():
             if i.isspace(): continue
             count += 1
             print(i)
+            print()
             big_count += 1
             if count == n//4: break
 

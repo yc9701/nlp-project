@@ -13,6 +13,7 @@ import preprocessing as preprocess
 from nltk.corpus import wordnet
 from nltk.corpus import stopwords
 
+nltk.download('stopwords')
 
 auxi_verbs = ["am", "is", "are", "was", "were", "have", "has", 
     "had", "do", "does", "did", "will", "would", "shall", "should", 
@@ -59,7 +60,9 @@ class Answerer():
     # returns The same sentence list but with common words removed
     def removeStopwords(self, sentence):
         common_words = set(stopwords.words('english'))
-        return filter(lambda w: not w.lower() in common_words, sentence)
+        print(sentence)
+        sentence_list = nltk.word_tokenize(str(sentence))
+        return nlp(" ".join(list(filter(lambda w: w.lower() not in common_words, sentence_list))))
 
     # finds the sentence in the document that is most similar to the ith question
     # input i: the index of question to search for
@@ -87,7 +90,7 @@ class Answerer():
         for word in sentence:
             if word not in string.punctuation and word not in self.questions[i]:
                 result += word + " "
-        result = result[0:len(result)-2]
+        result = result[0:len(result)-1]
         return result
   
     # answers the ith question
@@ -114,13 +117,13 @@ class Answerer():
                         for anti in lemma.antonyms():
                             antonyms.add(anti.name())
             for k in range(len(question)):
-                if question[k] = word or question[k] in synonyms:
-                    if (j > 0 and sentence[j-1] in negate_words) and (k = 0 or (k > 0 and question[k-1] not in negate_words)):
+                if question[k] == word or question[k] in synonyms:
+                    if (j > 0 and sentence[j-1] in negate_words) and (k == 0 or (k > 0 and question[k-1] not in negate_words)):
                         return "No"
-                    elif (j = 0 or (j > 0 and sentence[j-1] not in negate_words)) and (k > 0 and question[k-1] in negate_words):
+                    elif (j == 0 or (j > 0 and sentence[j-1] not in negate_words)) and (k > 0 and question[k-1] in negate_words):
                         return "No"
                 elif question[k] in antonyms:
-                    if (j = 0 or (j > 0 and sentence[j-1] not in negate_words)) and (k = 0 or (k > 0 and question[k-1] not in negate_words)):
+                    if (j == 0 or (j > 0 and sentence[j-1] not in negate_words)) and (k == 0 or (k > 0 and question[k-1] not in negate_words)):
                         return "No"
                     elif (j > 0 and sentence[j-1] in negate_words) and (k > 0 and question[k-1] in negate_words):
                         return "No"
